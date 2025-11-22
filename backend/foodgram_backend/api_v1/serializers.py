@@ -28,7 +28,7 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class TagSerializer(serializers.Serializer):
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'slug')
@@ -37,7 +37,7 @@ class TagSerializer(serializers.Serializer):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        field = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientsSerializer(serializers.Serializer):

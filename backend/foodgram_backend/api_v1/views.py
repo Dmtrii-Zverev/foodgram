@@ -27,10 +27,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = ()
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = ()
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
