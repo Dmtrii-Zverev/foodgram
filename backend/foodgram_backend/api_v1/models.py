@@ -9,11 +9,14 @@ from .constants import (
 UNIT_CHOICES = (
     ('г', 'грамм'),
     ('кг', 'килограмм'),
-    ('шт', 'штук'),
+    ('шт.', 'штук'),
     ('мл', 'миллилитры'),
     ('по вкусу', 'по вкусу'),
     ('ст. л.', 'столовая ложка'),
-    ('щепотка', 'щепотка')
+    ('ч. л.', 'чайная ложка'),
+    ('щепотка', 'щепотка'),
+    ('капля', 'капля',)
+
 )
 
 User = get_user_model()
@@ -34,15 +37,24 @@ class Ingredient(models.Model):
         'Единица измерения', max_length=MAX_LENGTH_CHAR, choices=UNIT_CHOICES
     )
 
+    def __str__(self):
+        return self.name
+
 
 class RecipeIngredient(models.Model):
-    recipe_id = models.ForeignKey('Recipe', on_delete=models.CASCADE)
-    ingredient_id = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE, related_name='recipes')
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='ingredients')
     amount = models.PositiveSmallIntegerField('количество')
+
+    def __str__(self):
+        return self.recipe, self.ingredient, self.amount
+
+    class Meta:
+        unique_together = ('recipe', 'ingredient')
 
 
 class Recipe(models.Model):
-    author_id = models.ForeignKey(
+    author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор'
@@ -55,7 +67,7 @@ class Recipe(models.Model):
         null=True,
         default=None
     )
-    description = models.TextField('Текст', max_length=MAX_LENGTH_TEXT)
+    text = models.TextField('Текст', max_length=MAX_LENGTH_TEXT)
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
