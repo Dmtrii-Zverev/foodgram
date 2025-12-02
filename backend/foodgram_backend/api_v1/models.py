@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 from .constants import (
@@ -42,12 +43,14 @@ class Ingredient(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE, related_name='recipes')
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='ingredients')
+    recipe = models.ForeignKey(
+        'Recipe', on_delete=models.CASCADE, related_name='recipes')
+    ingredient = models.ForeignKey(
+        Ingredient, on_delete=models.CASCADE, related_name='ingredients')
     amount = models.PositiveSmallIntegerField('количество')
 
     def __str__(self):
-        return self.recipe, self.ingredient, self.amount
+        return f'{self.recipe}, {self.ingredient}, {self.amount}'
 
     class Meta:
         unique_together = ('recipe', 'ingredient')
@@ -57,7 +60,8 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Автор'
+        verbose_name='Автор',
+        related_name='recipes'
     )
     name = models.CharField(
         max_length=MAX_LENGTH_CHAR, verbose_name='Название'
@@ -81,3 +85,43 @@ class Recipe(models.Model):
         'Время приготовления в минутах'
         # Добавитиь валидаторы на мин и макс значения.
     )
+
+
+class UserRecipe(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('recipe', 'user')
+
+
+class FavoriteRecipe(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('recipe', 'user')
+
+
+class UserFollow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Подписчик'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='followers',
+        verbose_name='Автор'
+    )
+
+    class Meta:
+        unique_together = ('user', 'author')
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+
+    def clean(self):
+        if self.user == self.author:
+            raise ValidationError('Вы не можете подписаться на самого себя.')
