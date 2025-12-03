@@ -1,4 +1,5 @@
 from rest_framework import filters, mixins, status, views, viewsets, generics
+from djoser.serializers import SetPasswordSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -24,10 +25,20 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retriev
     def get_serializer_class(self):
         if self.action == 'list':
             return MeSerializer
-        if self.action == 'retrieve':
+        elif self.action == 'retrieve':
             return MeSerializer
+        elif self.action == "set_password":
+            return SetPasswordSerializer
         return UserSerializer
-        
+    
+    @action(["post"], detail=False)
+    def set_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        self.request.user.set_password(serializer.data["new_password"])
+        self.request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UsersMeView(views.APIView):
@@ -36,7 +47,7 @@ class UsersMeView(views.APIView):
         """
 
     def get(self, request):
-        serializer = MeSerializer(request.user)
+        serializer = MeSerializer(request.user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):

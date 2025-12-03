@@ -67,8 +67,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe_ingredients = RecipeIngredient.objects.filter(
             recipe=obj
         ).select_related('ingredient')
-        
-        # Формируем список в нужном формате
         return [
             {
                 'id': ri.ingredient.id,
@@ -119,9 +117,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'email', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count', 'avatar')
-    
+
     def get_recipes_count(self, obj):
         return obj.recipes.all().count()
-    
+
     def get_is_subscribed(self, obj):
         return True
