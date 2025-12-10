@@ -13,10 +13,11 @@ class UserSerializer(UserCreateSerializer):
     email = serializers.EmailField(required=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
+    username = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = UserCreateSerializer.Meta.fields + ('email', 'first_name', 'last_name')
+        fields = UserCreateSerializer.Meta.fields + ('email', 'first_name', 'last_name', 'username')
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -29,14 +30,16 @@ class MeSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'is_subscribed', 'avatar')
-        
+
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        is_sub = UserFollow.objects.filter(
-            user=request.user,
-            author=obj
-        ).exists()
-        return is_sub
+        if request.user.is_authenticated:
+            is_sub = UserFollow.objects.filter(
+                user=request.user,
+                author=obj
+            ).exists()
+            return is_sub
+        return False
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -45,3 +48,35 @@ class AvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('avatar',)
+
+
+class ReadRecipeSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    image = Base64ImageField(required=False, allow_null=True)
+    cooking_time = serializers.IntegerField()
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count', 'avatar')
+        
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit_str = request.query_params.get('recipes_limit')
+        limit = int(limit_str) if limit_str else None
+        recipes = obj.recipes.all()[:limit]
+        serializer = ReadRecipeSerializer(recipes, many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.all().count()
+
+    def get_is_subscribed(self, obj):
+        return True

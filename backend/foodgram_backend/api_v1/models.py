@@ -1,10 +1,13 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 from .constants import (
     MAX_LENGTH_CHAR,
-    MAX_LENGTH_TEXT
+    MAX_LENGTH_TEXT,
+    MIN_COOKING_TIME,
+    MAX_COOKING_TIME
 )
 
 UNIT_CHOICES = (
@@ -29,6 +32,14 @@ class Tag(models.Model):
     )
     slug = models.SlugField(max_length=MAX_LENGTH_CHAR, unique=True)
 
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+        ordering = ['id']
+
+    def __str__(self):
+        return self.name
+
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -37,6 +48,11 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(
         'Единица измерения', max_length=MAX_LENGTH_CHAR, choices=UNIT_CHOICES
     )
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+        ordering = ['id']
 
     def __str__(self):
         return self.name
@@ -49,11 +65,12 @@ class RecipeIngredient(models.Model):
         Ingredient, on_delete=models.CASCADE, related_name='ingredients')
     amount = models.PositiveSmallIntegerField('количество')
 
-    def __str__(self):
-        return f'{self.recipe}, {self.ingredient}, {self.amount}'
-
     class Meta:
         unique_together = ('recipe', 'ingredient')
+        ordering = ['id']
+
+    def __str__(self):
+        return f'{self.recipe}, {self.ingredient}, {self.amount}'
 
 
 class Recipe(models.Model):
@@ -82,17 +99,37 @@ class Recipe(models.Model):
         verbose_name='Тег'
     )
     cooking_time = models.PositiveSmallIntegerField(
-        'Время приготовления в минутах'
-        # Добавитиь валидаторы на мин и макс значения.
+        'Время приготовления в минутах',
+        validators=[
+            MinValueValidator(
+                MIN_COOKING_TIME, message='Время не может быть меньше 1 минуты'
+            ),
+            MaxValueValidator(
+                MAX_COOKING_TIME, message='Время не может превышать 1 суток.'
+            )
+        ]
     )
 
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+        ordering = ['id']
 
-class UserRecipe(models.Model):
+    def __str__(self):
+        return self.name
+
+
+# Перименовываем из UserRecipe -> ShoppingCartItem
+class ShoppingCartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('recipe', 'user')
+        ordering = ['id']
+
+    def __str__(self):
+        return f'{self.user}, {self.recipe}'
 
 
 class FavoriteRecipe(models.Model):
@@ -101,6 +138,10 @@ class FavoriteRecipe(models.Model):
 
     class Meta:
         unique_together = ('recipe', 'user')
+        ordering = ['id']
+
+    def __str__(self):
+        return f'{self.user}, {self.recipe}'
 
 
 class UserFollow(models.Model):
@@ -121,6 +162,9 @@ class UserFollow(models.Model):
         unique_together = ('user', 'author')
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return f'{self.user}, {self.author}'
 
     def clean(self):
         if self.user == self.author:

@@ -7,8 +7,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api_v1.urls')),
-    #path('api-token-auth/', views.obtain_auth_token),
+    path('api/', include('api_v1.urls'))
 ]
 
 if settings.DEBUG:
