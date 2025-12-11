@@ -1,4 +1,5 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import HttpResponse
@@ -26,6 +27,7 @@ from .serializers import (
 
 from .pagination import CustomRecipePagination
 from .permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
+from .filters import RecipeFilter
 
 User = get_user_model()
 
@@ -34,8 +36,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrAuthorOrReadOnly,)
     http_method_names = ('get', 'post', 'patch', 'delete', 'options', 'head')
     pagination_class = CustomRecipePagination
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_class = TitleFilter
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action == 'get_link':
@@ -160,14 +162,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAdminOrReadOnly)
+    permission_classes = (IsAdminOrReadOnly,)
     serializer_class = IngredientSerializer
     pagination_class = None
     queryset = Ingredient.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAdminOrReadOnly)
+    permission_classes = (IsAdminOrReadOnly,)
     serializer_class = TagSerializer
     pagination_class = None
     queryset = Tag.objects.all()
