@@ -4,10 +4,16 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
+from api_v1.views import redirect_view
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api_v1.urls'))
+    path('api/', include('api_v1.urls')),
+    # Путь для короткой ссылке на получение рецепта.
+    path('s/<str:short_id>/',
+         redirect_view,
+         name='short-link'),
 ]
 
 if settings.DEBUG:

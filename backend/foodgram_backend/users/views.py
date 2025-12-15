@@ -1,25 +1,25 @@
-from rest_framework import filters, mixins, status, views, viewsets, permissions
+from rest_framework import mixins, status, views, viewsets
 from djoser.serializers import SetPasswordSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from djoser.serializers import UserCreateSerializer
 
 from users.serializers import (
-    UserSerializer,
     MeSerializer,
     AvatarSerializer,
     FollowSerializer
 )
 from api_v1.models import UserFollow
 from api_v1.pagination import CustomRecipePagination
-from api_v1.permissions import IsAdminOrAuthorOrReadOnly
+from api_v1.permissions import IsAdminOrAuthUserOrReadonly
 
 
 User = get_user_model()
 
 
 class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    permission_classes = (IsAdminOrAuthorOrReadOnly,)
+    permission_classes = (IsAdminOrAuthUserOrReadonly,)
     queryset = User.objects.all()
     pagination_class = CustomRecipePagination
 
@@ -32,14 +32,9 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retriev
             return SetPasswordSerializer
         elif self.action == 'subscriptions':
             return FollowSerializer
-        return UserSerializer
-    
-    def get_permissions(self):
-        if self.action == 'create':
-            return (permissions.AllowAny(),)
-        elif self.action == 'subscriptions':
-            return (permissions.IsAuthenticated,)
-        return super().get_permissions()
+        elif self.action == 'subscribe':
+            return FollowSerializer
+        return UserCreateSerializer
     
     @action(['post'], detail=False)
     def set_password(self, request, *args, **kwargs):
@@ -78,7 +73,8 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retriev
                     {'error': 'Вы уже подписаны на этого пользователя.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            return Response(FollowSerializer(author).data)
+            serializer = self.get_serializer(author, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         try:
             obj = UserFollow.objects.get(user=user, author=author)
             obj.delete()
@@ -101,8 +97,7 @@ class UsersMeView(views.APIView):
     def put(self, request):
         serializer = AvatarSerializer(
             request.user,
-            data=request.data,
-            partial=True
+            data=request.data
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()

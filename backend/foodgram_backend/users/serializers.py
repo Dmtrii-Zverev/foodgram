@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from djoser.serializers import UserCreateSerializer
+#from djoser.serializers import UserCreateSerializer
 from django.contrib.auth import get_user_model
 
 from api_v1.serializers import Base64ImageField
@@ -9,21 +9,18 @@ from api_v1.models import UserFollow
 User = get_user_model()
 
 
-class UserSerializer(UserCreateSerializer):
-    email = serializers.EmailField(required=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
-    username = serializers.CharField(required=True)
-
-    class Meta:
-        model = User
-        fields = UserCreateSerializer.Meta.fields + ('email', 'first_name', 'last_name', 'username')
+#class UserSerializer(UserCreateSerializer):
+#    email = serializers.EmailField(required=True)
+#    first_name = serializers.CharField(required=True, max_lenght=150)
+#    last_name = serializers.CharField(required=True, max_lenght=150)
+#    username = serializers.CharField(required=True, max_lenght=150)
+#
+#    class Meta:
+#        model = User
+#        fields = UserCreateSerializer.Meta.fields + ('email', 'first_name', 'last_name', 'username')
 
 
 class MeSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -69,8 +66,8 @@ class FollowSerializer(serializers.ModelSerializer):
         
     def get_recipes(self, obj):
         request = self.context.get('request')
-        limit_str = request.query_params.get('recipes_limit')
-        limit = int(limit_str) if limit_str else None
+        limit_str = request.query_params.get('recipes_limit', 10)
+        limit = int(limit_str)
         recipes = obj.recipes.all()[:limit]
         serializer = ReadRecipeSerializer(recipes, many=True)
         return serializer.data

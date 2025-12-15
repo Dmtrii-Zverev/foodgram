@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from shortuuid.django_fields import ShortUUIDField
 
 from .constants import (
     MAX_LENGTH_CHAR,
@@ -74,6 +75,15 @@ class RecipeIngredient(models.Model):
 
 
 class Recipe(models.Model):
+    short_url = ShortUUIDField(
+        length=5,
+        max_length=10,
+        prefix='/s/',  # эксперементальный параметр
+        alphabet='abcdefg12340',
+        unique=True,
+        editable=False,
+        verbose_name='Короткий ID для ссылки'
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -93,10 +103,12 @@ class Recipe(models.Model):
         Ingredient,
         through='RecipeIngredient',
         verbose_name='Ингредиенты'
+        # сделать поле обязательным
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тег'
+        # сделать поле обязательным
     )
     cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления в минутах',
