@@ -1,15 +1,11 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from shortuuid.django_fields import ShortUUIDField
 
-from .constants import (
-    MAX_LENGTH_CHAR,
-    MAX_LENGTH_TEXT,
-    MIN_COOKING_TIME,
-    MAX_COOKING_TIME
-)
+from .constants import (MAX_COOKING_TIME, MAX_LENGTH_CHAR, MAX_LENGTH_TEXT,
+                        MIN_COOKING_TIME)
 
 UNIT_CHOICES = (
     ('г', 'грамм'),

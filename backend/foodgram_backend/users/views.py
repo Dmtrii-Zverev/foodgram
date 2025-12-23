@@ -1,18 +1,14 @@
+from api_v1.models import UserFollow
+from api_v1.pagination import CustomRecipePagination
+from api_v1.permissions import IsAdminOrAuthUserOrReadonly
 from django.contrib.auth import get_user_model
 from django.db.models import BooleanField, Count, Exists, OuterRef, Value
 from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
 from rest_framework import mixins, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from users.serializers import AvatarSerializer, FollowSerializer, MeSerializer
 
-from api_v1.models import UserFollow
-from api_v1.pagination import CustomRecipePagination
-from api_v1.permissions import IsAdminOrAuthUserOrReadonly
-from users.serializers import (
-    AvatarSerializer,
-    FollowSerializer,
-    MeSerializer
-)
 User = get_user_model()
 
 

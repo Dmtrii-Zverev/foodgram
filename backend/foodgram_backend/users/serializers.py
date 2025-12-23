@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
-
 from api_v1.models import UserFollow
 from api_v1.serializers import Base64ImageField
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
 User = get_user_model()
 
@@ -50,7 +49,7 @@ class FollowSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'email', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count', 'avatar')
-        
+
     def get_recipes(self, obj):
         request = self.context.get('request')
         limit_str = request.query_params.get('recipes_limit', 10)

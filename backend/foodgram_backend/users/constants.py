@@ -1,5 +1,6 @@
 MAX_LENGTH_USERNAME = 150
 """Максимальная длина поля username."""
+
 MAX_LENGTH_EMAIL = 254
 """Максимальная длина поля email."""
 

@@ -1,5 +1,5 @@
-from django.contrib.auth import get_user_model
 import django_filters
+from django.contrib.auth import get_user_model
 
 from .models import Recipe, Tag
 
@@ -29,12 +29,12 @@ class RecipeFilter(django_filters.FilterSet):
         if value:
             return queryset.filter(in_carts__user=user)
         return queryset.exclude(in_carts__user=user)
-    
+
     def filter_is_favorited(self, queryset, name, value):
         user = self.request.user
         if user.is_anonymous:
             return queryset
-        
+
         if value:
             return queryset.filter(in_favorits__user=user)
         return queryset.exclude(in_favorits__user=user)

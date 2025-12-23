@@ -1,3 +1,5 @@
+from api_v1.models import (FavoriteRecipe, Ingredient, Recipe,
+                           RecipeIngredient, ShoppingCartItem, Tag)
 from django.contrib.auth import get_user_model
 from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
 from django.http import HttpResponse
@@ -6,24 +8,12 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
-from api_v1.models import (
-    FavoriteRecipe,
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    ShoppingCartItem,
-    Tag
-)
 from .filters import RecipeFilter
 from .pagination import CustomRecipePagination
 from .permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (
-    IngredientSerializer,
-    ListRetrieveRecipeSerializer,
-    ReadRecipeSerializer,
-    RecipeSerializer,
-    TagSerializer
-)
+from .serializers import (IngredientSerializer, ListRetrieveRecipeSerializer,
+                          ReadRecipeSerializer, RecipeSerializer,
+                          TagSerializer)
 
 User = get_user_model()
 
@@ -130,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(methods=['post', 'delete'], detail=True, url_path='favorite')
     def favorite_cart(self, request, *args, **kwargs):
         return self._manage_user_list(request, FavoriteRecipe, 'избранном')
-    
+
     def _manage_user_list(self, request, model, list_name):
         '''Вспомогательный метод для управления корзиной/избранным.'''
         user = request.user
@@ -152,7 +142,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'error': f'Рецепта нет в {list_name}.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         queryset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

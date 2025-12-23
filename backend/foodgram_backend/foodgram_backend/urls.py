@@ -1,11 +1,8 @@
+from api_v1.views import redirect_view
 from django.conf import settings
 from django.conf.urls.static import static
-
 from django.contrib import admin
-from django.urls import path, include
-
-from api_v1.views import redirect_view
-
+from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
