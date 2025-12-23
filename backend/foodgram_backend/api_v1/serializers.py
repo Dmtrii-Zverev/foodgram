@@ -1,19 +1,16 @@
 import base64
 
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from rest_framework import serializers
 
 from .models import (
-    Recipe,
+    UNIT_CHOICES,
     Ingredient,
-    Tag,
+    Recipe,
     RecipeIngredient,
-    FavoriteRecipe,
-    ShoppingCartItem,
-    UNIT_CHOICES
+    Tag
 )
-
 
 User = get_user_model()
 
@@ -70,7 +67,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'tags', 'image', 'ingredients',
                   'name', 'text', 'cooking_time')
-        
+
     def validate_ingredients(self, value):
         ingredient_ids = [item['id'] for item in value]
         if len(ingredient_ids) != len(set(ingredient_ids)):
@@ -78,7 +75,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'Ингредиенты не должны повторяться.'
             )
         return value
-    
+
     def validate_tags(self, value):
         if len(value) != len(set(value)):
             raise serializers.ValidationError('Теги не должны повторяться.')
@@ -103,7 +100,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         RecipeIngredient.objects.bulk_create(recipe_ingredients_list)
         return recipe
-    
+
     def update(self, instance, validated_data):
         if 'tags' in validated_data:
             tags = validated_data.pop('tags')
@@ -139,7 +136,9 @@ class ListRetrieveRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'image', 'ingredients', 'is_favorited', 'is_in_shopping_cart',
+        fields = ('id', 'tags', 'author', 'image',
+                  'ingredients', 'is_favorited',
+                  'is_in_shopping_cart',
                   'name', 'text', 'cooking_time')
 
     def get_ingredients(self, obj):

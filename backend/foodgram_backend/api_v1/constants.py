@@ -1,4 +1,4 @@
-MAX_LENGTH_CHAR = 50
+MAX_LENGTH_CHAR = 255
 MAX_LENGTH_TEXT = 256
 # Минимальное время приготовления в минутах.
 MIN_COOKING_TIME = 1

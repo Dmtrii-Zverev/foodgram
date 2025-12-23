@@ -21,7 +21,6 @@ UNIT_CHOICES = (
     ('ч. л.', 'чайная ложка'),
     ('щепотка', 'щепотка'),
     ('капля', 'капля',)
-
 )
 
 User = get_user_model()
@@ -29,9 +28,14 @@ User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=MAX_LENGTH_CHAR, unique=True, verbose_name='Название'
+        max_length=MAX_LENGTH_CHAR,
+        unique=True,
+        verbose_name='Название'
     )
-    slug = models.SlugField(max_length=MAX_LENGTH_CHAR, unique=True)
+    slug = models.SlugField(
+        max_length=MAX_LENGTH_CHAR,
+        unique=True
+    )
 
     class Meta:
         verbose_name = 'Тег'
@@ -44,10 +48,14 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=MAX_LENGTH_CHAR, unique=True, verbose_name='Название'
+        max_length=MAX_LENGTH_CHAR,
+        unique=True,
+        verbose_name='Название'
     )
     measurement_unit = models.CharField(
-        'Единица измерения', max_length=MAX_LENGTH_CHAR, choices=UNIT_CHOICES
+        'Единица измерения',
+        max_length=MAX_LENGTH_CHAR,
+        choices=UNIT_CHOICES
     )
 
     class Meta:
@@ -61,9 +69,17 @@ class Ingredient(models.Model):
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
-        'Recipe', on_delete=models.CASCADE, related_name='recipes')
+        'Recipe',
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Рецепт'
+    )
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name='ingredients')
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='ingredients',
+        verbose_name='Ингредиент'
+    )
     amount = models.PositiveSmallIntegerField('количество')
 
     class Meta:
@@ -78,7 +94,7 @@ class Recipe(models.Model):
     short_url = ShortUUIDField(
         length=5,
         max_length=10,
-        prefix='/s/',  # эксперементальный параметр
+        prefix='/s/',
         alphabet='abcdefg12340',
         unique=True,
         editable=False,
@@ -103,12 +119,10 @@ class Recipe(models.Model):
         Ingredient,
         through='RecipeIngredient',
         verbose_name='Ингредиенты'
-        # сделать поле обязательным
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тег'
-        # сделать поле обязательным
     )
     cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления в минутах',
@@ -131,26 +145,47 @@ class Recipe(models.Model):
         return self.name
 
 
-# Перименовываем из UserRecipe -> ShoppingCartItem
 class ShoppingCartItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='in_carts',
+        verbose_name='Рецепт'
+    )
 
     class Meta:
         unique_together = ('recipe', 'user')
         ordering = ['id']
+        verbose_name = 'Корзина рецептов'
+        verbose_name_plural = 'Корзина рецептов'
 
     def __str__(self):
         return f'{self.user}, {self.recipe}'
 
 
 class FavoriteRecipe(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='in_favorits',
+        verbose_name='Рецепт'
+    )
 
     class Meta:
         unique_together = ('recipe', 'user')
         ordering = ['id']
+        verbose_name = 'Избранные рецепты'
+        verbose_name_plural = 'Избранные рецепты'
 
     def __str__(self):
         return f'{self.user}, {self.recipe}'

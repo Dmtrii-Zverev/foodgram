@@ -1,33 +1,29 @@
-from rest_framework import viewsets, permissions, filters
+from django.contrib.auth import get_user_model
+from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.http import HttpResponse
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
-from django.db.models import Exists, OuterRef, Value, BooleanField
-
 
 from api_v1.models import (
-    Recipe,
+    FavoriteRecipe,
     Ingredient,
-    Tag,
-    ShoppingCartItem,
+    Recipe,
     RecipeIngredient,
-    FavoriteRecipe
+    ShoppingCartItem,
+    Tag
 )
-from .serializers import (
-    RecipeSerializer,
-    IngredientSerializer,
-    TagSerializer,
-    ReadRecipeSerializer,
-    ListRetrieveRecipeSerializer
-)
-
+from .filters import RecipeFilter
 from .pagination import CustomRecipePagination
 from .permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
-from .filters import RecipeFilter
+from .serializers import (
+    IngredientSerializer,
+    ListRetrieveRecipeSerializer,
+    ReadRecipeSerializer,
+    RecipeSerializer,
+    TagSerializer
+)
 
 User = get_user_model()
 
@@ -74,12 +70,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         instance = serializer.instance
-        # Получаем объект через get_queryset(), для доп полей.
-        instance = self.get_queryset().get(pk=instance.pk)
-        read_serializer = ListRetrieveRecipeSerializer(
-            instance, context={'request': request})
-        headers = self.get_success_headers(read_serializer.data)
-        return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return self._get_read_response(instance, status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -87,91 +78,83 @@ class RecipeViewSet(viewsets.ModelViewSet):
             instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        # Получаем объект через get_queryset(), для доп полей.
+        return self._get_read_response(instance, status.HTTP_200_OK)
+
+    def _get_read_response(self, instance, status_code):
         instance = self.get_queryset().get(pk=instance.pk)
-        read_serializer = ListRetrieveRecipeSerializer(
-            instance, context={'request': request})
-        return Response(read_serializer.data)
+        serializer = ListRetrieveRecipeSerializer(
+            instance,
+            context={'request': self.request}
+        )
+        return Response(serializer.data, status=status_code)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(["get"], detail=True, url_path='get-link')
+    @action(methods=['get'], detail=True, url_path='get-link')
     def get_link(self, request, *args, **kwargs):
         recipe = self.get_object()
         link = request.build_absolute_uri(recipe.short_url + '/')
         return Response({'short-link': link})
 
-    @action(["get"], detail=False, url_path='download_shopping_cart')
+    @action(methods=['get'], detail=False, url_path='download_shopping_cart')
     def download_api_text(self, request, *args, **kwargs):
-        user = request.user
-        data_from_db = ShoppingCartItem.objects.filter(
-            user=user).values_list('recipe_id', flat=True)
-        recipe_ingredients = RecipeIngredient.objects.filter(
-            recipe_id__in=data_from_db).select_related('ingredient')
-        dict_ingredients = {}
-        for obj in recipe_ingredients:
-            if obj.ingredient.name not in dict_ingredients:
-                dict_ingredients[obj.ingredient.name] = [
-                    obj.ingredient.name, obj.ingredient.measurement_unit, obj.amount]
-            else:
-                new_amount = dict_ingredients[obj.ingredient.name][2] + obj.amount
-                dict_ingredients[obj.ingredient.name] = [
-                    obj.ingredient.name, obj.ingredient.measurement_unit, new_amount]
-        lst = [
-            f'{item[0]} ({item[1]}) - {item[2]}' for item in dict_ingredients.values()]
-        response_content = '\n'.join(lst)
-        response = HttpResponse(response_content, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="ingredients.txt"'
+        ingredients = (
+            RecipeIngredient.objects
+            .filter(recipe__in_carts__user=request.user)
+            .values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('ingredient__name')
+        )
+        content = [
+            f'{item['ingredient__name']} '
+            f'({item['ingredient__measurement_unit']}) — '
+            f'{item['total_amount']}'
+            for item in ingredients
+        ]
+        response_content = 'Список покупок:\n' + '\n'.join(content)
+        response = HttpResponse(
+            response_content,
+            content_type='text/plain; charset=utf-8'
+        )
+        filename = 'ingredients.txt'
+        response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
 
     @action(methods=['post', 'delete'], detail=True)
     def shopping_cart(self, request, *args, **kwargs):
-        user = request.user
-        recipe = self.get_object()
-        if request.method == 'POST':
-            obj, created = ShoppingCartItem.objects.get_or_create(
-                recipe=recipe, user=user)
-            if not created:
-                return Response(
-                    {'error': 'Рецепт с таким названием уже добавлен с список покупок.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            serializer = self.get_serializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        try:
-            obj = ShoppingCartItem.objects.get(recipe=recipe, user=user)
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except ShoppingCartItem.DoesNotExist:
-            return Response(
-                {'error': 'Рецепт с таким названием не добавлен с список покупок.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return self._manage_user_list(
+            request, ShoppingCartItem, 'списке покупок'
+        )
 
     @action(methods=['post', 'delete'], detail=True, url_path='favorite')
     def favorite_cart(self, request, *args, **kwargs):
+        return self._manage_user_list(request, FavoriteRecipe, 'избранном')
+    
+    def _manage_user_list(self, request, model, list_name):
+        '''Вспомогательный метод для управления корзиной/избранным.'''
         user = request.user
         recipe = self.get_object()
+        queryset = model.objects.filter(user=user, recipe=recipe)
+
         if request.method == 'POST':
-            obj, created = FavoriteRecipe.objects.get_or_create(
-                recipe=recipe, user=user)
-            if not created:
+            if queryset.exists():
                 return Response(
-                    {'error': 'Рецепт с таким названием уже добавлен в избранное.'},
+                    {'error': f'Рецепт уже в {list_name}.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            model.objects.create(user=user, recipe=recipe)
             serializer = self.get_serializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        try:
-            obj = FavoriteRecipe.objects.get(recipe=recipe, user=user)
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except FavoriteRecipe.DoesNotExist:
+
+        if not queryset.exists():
             return Response(
-                {'error': 'Рецепт с таким названием не добавлен в избранное.'},
+                {'error': f'Рецепта нет в {list_name}.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        queryset.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
@@ -194,6 +177,8 @@ class TagViewSet(viewsets.ModelViewSet):
 @permission_classes([permissions.AllowAny])
 def redirect_view(request, short_id):
     print(short_id)
-    recipe = Recipe.objects.get(short_url='/s/'+short_id)
-    serializer = ListRetrieveRecipeSerializer(recipe, context={'request': request})
+    recipe = Recipe.objects.get(short_url='/s/' + short_id)
+    serializer = ListRetrieveRecipeSerializer(
+        recipe, context={'request': request}
+    )
     return Response(serializer.data)

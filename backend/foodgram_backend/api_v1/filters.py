@@ -1,6 +1,7 @@
-import django_filters
-from .models import Recipe, Tag, ShoppingCartItem, FavoriteRecipe
 from django.contrib.auth import get_user_model
+import django_filters
+
+from .models import Recipe, Tag
 
 User = get_user_model()
 
@@ -21,20 +22,19 @@ class RecipeFilter(django_filters.FilterSet):
         fields = ['tags', 'author', 'is_in_shopping_cart', 'is_favorited']
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
-            user_items = ShoppingCartItem.objects.filter(user=self.request.user).values_list('recipe_id', flat=True)
-            return queryset.filter(id__in=user_items)
-            
-        elif self.request.user.is_authenticated and not value:
-            user_items = ShoppingCartItem.objects.filter(user=self.request.user).values_list('recipe_id', flat=True)
-            return queryset.exclude(id__in=user_items)
-        return queryset
+        user = self.request.user
+        if user.is_anonymous:
+            return queryset
+
+        if value:
+            return queryset.filter(in_carts__user=user)
+        return queryset.exclude(in_carts__user=user)
     
     def filter_is_favorited(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
-            user_items = FavoriteRecipe.objects.filter(user=self.request.user).values_list('recipe_id', flat=True)
-            return queryset.filter(id__in=user_items)
-        elif self.request.user.is_authenticated and not value:
-            user_items = FavoriteRecipe.objects.filter(user=self.request.user).values_list('recipe_id', flat=True)
-            return queryset.exclude(id__in=user_items)
-        return queryset
+        user = self.request.user
+        if user.is_anonymous:
+            return queryset
+        
+        if value:
+            return queryset.filter(in_favorits__user=user)
+        return queryset.exclude(in_favorits__user=user)
