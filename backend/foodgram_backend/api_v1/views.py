@@ -97,9 +97,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             .order_by('ingredient__name')
         )
         content = [
-            f'{item['ingredient__name']} '
-            f'({item['ingredient__measurement_unit']}) — '
-            f'{item['total_amount']}'
+            f"{item['ingredient__name']} "
+            f"({item['ingredient__measurement_unit']}) — "
+            f"{item['total_amount']}"
             for item in ingredients
         ]
         response_content = 'Список покупок:\n' + '\n'.join(content)
