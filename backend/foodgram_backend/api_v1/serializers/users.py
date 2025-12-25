@@ -1,7 +1,9 @@
-from api_v1.models import UserFollow
-from api_v1.serializers import Base64ImageField
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
+from apps.users.models import UserFollow
+
+from .recipes import Base64ImageField
 
 User = get_user_model()
 

@@ -25,8 +25,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'djoser',
-    'users.apps.UsersConfig',
-    'api_v1.apps.ApiV1Config',
+    'api_v1',
+    'apps.users',
+    'apps.recipes',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +59,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -68,7 +70,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', 5432)
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {

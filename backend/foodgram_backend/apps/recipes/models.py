@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from shortuuid.django_fields import ShortUUIDField
 
-from .constants import (MAX_COOKING_TIME, MAX_LENGTH_CHAR, MAX_LENGTH_TEXT,
-                        MIN_COOKING_TIME)
+from .constants import (
+    MAX_COOKING_TIME, MAX_LENGTH_CHAR, MAX_LENGTH_TEXT, MIN_COOKING_TIME,
+)
 
 UNIT_CHOICES = (
     ('г', 'грамм'),
@@ -185,30 +185,3 @@ class FavoriteRecipe(models.Model):
 
     def __str__(self):
         return f'{self.user}, {self.recipe}'
-
-
-class UserFollow(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='following',
-        verbose_name='Подписчик'
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='followers',
-        verbose_name='Автор'
-    )
-
-    class Meta:
-        unique_together = ('user', 'author')
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
-
-    def __str__(self):
-        return f'{self.user}, {self.author}'
-
-    def clean(self):
-        if self.user == self.author:
-            raise ValidationError('Вы не можете подписаться на самого себя.')

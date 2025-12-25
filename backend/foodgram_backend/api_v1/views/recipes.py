@@ -1,5 +1,3 @@
-from api_v1.models import (FavoriteRecipe, Ingredient, Recipe,
-                           RecipeIngredient, ShoppingCartItem, Tag)
 from django.contrib.auth import get_user_model
 from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
 from django.http import HttpResponse
@@ -8,12 +6,17 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
-from .filters import RecipeFilter
-from .pagination import CustomRecipePagination
-from .permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (IngredientSerializer, ListRetrieveRecipeSerializer,
-                          ReadRecipeSerializer, RecipeSerializer,
-                          TagSerializer)
+from api_v1.filters import RecipeFilter
+from api_v1.pagination import CustomRecipePagination
+from api_v1.permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
+from api_v1.serializers.recipes import (
+    IngredientSerializer, ListRetrieveRecipeSerializer, ReadRecipeSerializer,
+    RecipeSerializer, TagSerializer,
+)
+from apps.recipes.models import (
+    FavoriteRecipe, Ingredient, Recipe, RecipeIngredient, ShoppingCartItem,
+    Tag,
+)
 
 User = get_user_model()
 
