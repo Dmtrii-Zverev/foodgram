@@ -44,9 +44,8 @@ class UserViewSet(
             )
         if user.is_authenticated:
             queryset = queryset.annotate(
-                is_subscribed=Exists(UserFollow.objects.filter(
-                    user=user, author=OuterRef('pk')
-                ))
+                is_subscribed=Exists(
+                    user.following.filter(author=OuterRef('pk')))
             )
         else:
             queryset = queryset.annotate(
@@ -85,7 +84,7 @@ class UserViewSet(
                 {'error': 'Вы не можете быть подписанным на самого себя!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        queryset = UserFollow.objects.filter(user=user, author=author)
+        queryset = user.following.filter(author=author)
         if request.method == 'POST':
             if queryset.exists():
                 return Response(
@@ -107,9 +106,9 @@ class UserViewSet(
 
 
 class UsersMeView(views.APIView):
-    '''Получение данных своей учетной записи.
+    """Получение данных своей учетной записи.
         Доступно любому авторизованному пользователю.
-        '''
+        """
     def get(self, request):
         serializer = MeSerializer(request.user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)

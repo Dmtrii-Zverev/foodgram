@@ -3,10 +3,10 @@ from rest_framework.exceptions import MethodNotAllowed
 
 
 class IsAdminOrAuthorOrReadOnly(permissions.BasePermission):
-    '''Изменение и удаление объекта.
+    """Изменение и удаление объекта.
     Разрешает создателю объекта модель и  администратору
     изменять/удалять объект. Остальным только читать.
-    '''
+    """
     def has_permission(self, request, view):
         if view.action == 'download_api_text':
             return request.user.is_authenticated

@@ -4,7 +4,8 @@ from django.db import models
 from shortuuid.django_fields import ShortUUIDField
 
 from .constants import (
-    MAX_COOKING_TIME, MAX_LENGTH_CHAR, MAX_LENGTH_TEXT, MIN_COOKING_TIME,
+    MAX_AMOUNT, MAX_COOKING_TIME, MAX_LENGTH_CHAR, MAX_LENGTH_TEXT, MIN_AMOUNT,
+    MIN_COOKING_TIME,
 )
 
 UNIT_CHOICES = (
@@ -76,7 +77,17 @@ class RecipeIngredient(models.Model):
         related_name='ingredients',
         verbose_name='Ингредиент'
     )
-    amount = models.PositiveSmallIntegerField('количество')
+    amount = models.PositiveSmallIntegerField(
+        'количество',
+        validators=[
+            MinValueValidator(
+                MIN_AMOUNT, message='Кол-во не может быть меньше 1.'
+            ),
+            MaxValueValidator(
+                MAX_AMOUNT, message='Кол-во не может быть больше 32000.'
+            )
+        ]
+    )
 
     class Meta:
         unique_together = ('recipe', 'ingredient')
@@ -145,6 +156,7 @@ class ShoppingCartItem(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='shopping_cart',
         verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
@@ -168,6 +180,7 @@ class FavoriteRecipe(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='favorit_cart',
         verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(

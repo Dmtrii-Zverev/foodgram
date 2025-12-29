@@ -1,9 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from apps.users.models import UserFollow
-
-from .recipes import Base64ImageField
+from api_v1.serializers.base import Base64ImageField
 
 User = get_user_model()
 
@@ -19,10 +17,7 @@ class MeSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request.user.is_authenticated:
-            is_sub = UserFollow.objects.filter(
-                user=request.user,
-                author=obj
-            ).exists()
+            is_sub = obj.followers.all().exists()
             return is_sub
         return False
 

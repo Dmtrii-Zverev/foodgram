@@ -37,6 +37,14 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
+    class Meta:
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'Пользователи'
+        ordering = ['id']
+
+    def __str__(self):
+        return self.username
+
 
 class UserFollow(models.Model):
     user = models.ForeignKey(

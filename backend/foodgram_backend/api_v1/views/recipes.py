@@ -41,14 +41,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             queryset = queryset.annotate(
                 is_in_shopping_cart=Exists(
-                    ShoppingCartItem.objects.filter(
-                        user=user, recipe=OuterRef('pk')
-                    )
+                    # ShoppingCartItem.objects.filter(
+                    #     user=user, recipe=OuterRef('pk')
+                    # )
+                    user.shopping_cart.filter(recipe=OuterRef('pk'))
                 ),
                 is_favorited=Exists(
-                    FavoriteRecipe.objects.filter(
-                        user=user, recipe=OuterRef('pk')
-                    )
+                    # FavoriteRecipe.objects.filter(
+                    #     user=user, recipe=OuterRef('pk')
+                    # )
+                    user.favorit_cart.filter(recipe=OuterRef('pk'))
                 )
             )
         else:
@@ -125,7 +127,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self._manage_user_list(request, FavoriteRecipe, 'избранном')
 
     def _manage_user_list(self, request, model, list_name):
-        '''Вспомогательный метод для управления корзиной/избранным.'''
+        """Вспомогательный метод для управления корзиной/избранным."""
         user = request.user
         recipe = self.get_object()
         queryset = model.objects.filter(user=user, recipe=recipe)
@@ -169,7 +171,6 @@ class TagViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def redirect_view(request, short_id):
-    print(short_id)
     recipe = Recipe.objects.get(short_url='/s/' + short_id)
     serializer = ListRetrieveRecipeSerializer(
         recipe, context={'request': request}
