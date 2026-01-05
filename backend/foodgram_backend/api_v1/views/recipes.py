@@ -2,11 +2,11 @@ from django.contrib.auth import get_user_model
 from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
-from api_v1.filters import RecipeFilter
+from api_v1.filters import RecipeFilter, IngredientFilter
 from api_v1.pagination import CustomRecipePagination
 from api_v1.permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
 from api_v1.serializers.recipes import (
@@ -151,8 +151,8 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     queryset = Ingredient.objects.all()
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ModelViewSet):
