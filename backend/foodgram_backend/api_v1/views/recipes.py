@@ -6,7 +6,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
-from api_v1.filters import RecipeFilter, IngredientFilter
+from api_v1.filters import IngredientFilter, RecipeFilter
 from api_v1.pagination import CustomRecipePagination
 from api_v1.permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
 from api_v1.serializers.recipes import (

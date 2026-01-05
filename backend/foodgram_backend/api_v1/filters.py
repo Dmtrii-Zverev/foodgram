@@ -1,7 +1,7 @@
 import django_filters
 from django.contrib.auth import get_user_model
 
-from apps.recipes.models import Recipe, Tag, Ingredient
+from apps.recipes.models import Ingredient, Recipe, Tag
 
 User = get_user_model()
 
@@ -38,10 +38,11 @@ class RecipeFilter(django_filters.FilterSet):
         if value:
             return queryset.filter(in_favorits__user=user)
         return queryset.exclude(in_favorits__user=user)
-    
-    class IngredientFilter(django_filters.FilterSet):
-        name = django_filters.CharFilter(lookup_expr='istartswith')
 
-        class Meta:
-            model = Ingredient
-            fields = ('name',)
+
+class IngredientFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='istartswith')
+
+    class Meta:
+        model = Ingredient
+        fields = ('name',)
