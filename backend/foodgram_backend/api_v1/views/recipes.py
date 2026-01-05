@@ -151,9 +151,8 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     queryset = Ingredient.objects.all()
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_fields = ('name',)
-    search_fields = ('name',)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^name',)
 
 
 class TagViewSet(viewsets.ModelViewSet):
