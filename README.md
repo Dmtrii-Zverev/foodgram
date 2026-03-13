@@ -1,12 +1,13 @@
-# Foodgram API
+# Foodgram — backend сервиса рецептов
 
-Backend service for a recipe sharing platform.
+Backend часть сервиса для публикации и хранения рецептов.  
+Пользователи могут публиковать рецепты, подписываться на авторов, добавлять рецепты в избранное и формировать список покупок.
 
-The service allows users to publish recipes, subscribe to authors, add recipes to favorites, and generate shopping lists.
+Проект реализован как REST API сервис.
 
 ---
 
-## Tech Stack
+## Стек технологий
 
 - Python
 - Django
@@ -19,42 +20,17 @@ The service allows users to publish recipes, subscribe to authors, add recipes t
 
 ---
 
-## Features
+## Основные возможности
 
-- User authentication
-- Recipe publishing
-- Subscriptions to authors
-- Favorites
-- Shopping list generation
-- Filtering and pagination for recipes
-
----
-
-## Architecture
-
-The application follows a typical web service architecture.
-
-Client → REST API → Database
-
-- Client interacts with the API using HTTP requests
-- Django REST Framework handles request processing
-- PostgreSQL stores application data
+- регистрация и аутентификация пользователей
+- публикация рецептов
+- подписки на авторов
+- добавление рецептов в избранное
+- формирование списка покупок
+- фильтрация и пагинация рецептов
 
 ---
 
-## API Examples
+## Архитектура сервиса
 
-### Create a recipe
-
-POST `/api/recipes/`
-
-Request example:
-
-```json
-{
-  "name": "Pasta",
-  "ingredients": [
-    {"id": 1, "amount": 200}
-  ],
-  "cooking_time": 20
-}
+Сервис построен по стандартной архитектуре backend веб-приложения:
