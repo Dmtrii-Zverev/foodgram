@@ -37,39 +37,7 @@ REST API (Django + DRF)
    |
 PostgreSQL
 
-## Примеры API
 
-### Создание рецепта
 
-POST /api/recipes/
-
-Пример запроса:
-
-```json
-{
-  "name": "Паста",
-  "ingredients": [
-    {"id": 1, "amount": 200}
-  ],
-  "cooking_time": 20
-}
-
- ```markdown
-
-## Запуск проекта
-
-Клонировать репозиторий:
-
-git clone https://github.com/Dmtrii-Zverev/foodgram.git
-
-Перейти в папку проекта:
-
-cd foodgram
-
-Запустить через Docker:
-
-docker compose up 
-
----
 
 
