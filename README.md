@@ -92,4 +92,4 @@
 - Backend разработка
 - Проектирование архитектуры БД
 - Настройка инфраструктуры и CI/CD деплоя
-- [GitHub Profile](https://github.com/dmitrii23)
+- [GitHub Profile](https://github.com/Dmtrii-Zverev)
