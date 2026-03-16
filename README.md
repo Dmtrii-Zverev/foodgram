@@ -4,7 +4,7 @@
 
 **Foodgram** — это социальная сеть и сервис для обмена рецептами. Пользователи могут публиковать свои кулинарные открытия, подписываться на интересных авторов, добавлять рецепты в избранное и формировать список покупок для похода в магазин.
 
-**Проект доступен по адресу:** [http://62.84.123.151](http://62.84.123.151)
+**Проект доступен по адресу:** [https://foodgram-app.hopto.org/](https://foodgram-app.hopto.org/)
 
 ---
 
@@ -60,30 +60,31 @@
    DB_PORT=5432
    SECRET_KEY=your_secret_key
    DEBUG=False
-   ALLOWED_HOSTS=127.0.0.1, localhost, <your_ip>
+   ALLOWED_HOSTS=127.0.0.1, localhost, foodgram-app.hopto.org
    ```
+   *Важно: Соблюдайте пробел после запятой в ALLOWED_HOSTS из-за особенностей парсинга в настройках.*
 
 3. Запустите контейнеры:
    ```bash
-   docker compose -f infra/docker-compose.production.yml up -d
+   docker compose -f infra/docker-compose.yml up -d
    ```
 
 4. Выполните миграции и подготовьте статику:
    ```bash
-   docker compose -f infra/docker-compose.production.yml exec backend python manage.py migrate
-   docker compose -f infra/docker-compose.production.yml exec backend python manage.py collectstatic --no-input
+   docker compose -f infra/docker-compose.yml exec backend python manage.py migrate
+   docker compose -f infra/docker-compose.yml exec backend python manage.py collectstatic
    ```
 
 5. Загрузите базу ингредиентов:
    ```bash
-   docker compose -f infra/docker-compose.production.yml exec backend python manage.py load_ingredients data/ingredients.csv
+   docker compose -f infra/docker-compose.yml exec backend python manage.py load_ingredients apps/recipes/ingredients.csv
    ```
 
 ---
 
 ## Документация API
 Спецификация API в формате Redoc доступна после запуска проекта по адресу:
-`http://localhost:8080/api/docs/` (или по IP вашего сервера).
+`http://localhost/api/docs/` (или по адресу вашего сервера).
 
 ---
 
@@ -92,4 +93,4 @@
 - Backend разработка
 - Проектирование архитектуры БД
 - Настройка инфраструктуры и CI/CD деплоя
-- [GitHub Profile](https://github.com/dmitrii23)
+- [GitHub Profile](https://github.com/Dmtrii-Zverev)
